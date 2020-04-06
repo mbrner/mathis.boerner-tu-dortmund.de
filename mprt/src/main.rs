@@ -5,7 +5,7 @@ use std::fs;
 use url::Url;
 use std::collections::HashMap;
 use regex::Regex;
-use std::collections::hash_map::Entry;
+
 
 #[tokio::main]
 async fn main() {
@@ -20,7 +20,7 @@ async fn main() {
     let contents = fs::read_to_string(filename)
         .expect("Something went wrong reading the file");
     let fast_a_content = get_components(&contents).await;
-    let positions = find_positions(&fast_a_content, &pattern);
+    let positions = find_positions_regex(&fast_a_content, &pattern);
     for l in contents.lines() {
         if l.len() == 0 {
             continue
@@ -38,20 +38,42 @@ async fn main() {
     }
 }
 
-fn find_positions(seqs: &HashMap<String, String>, pattern: &str) -> HashMap<String, Vec<usize>> {
+fn find_positions_regex(seqs: &HashMap<String, String>, pattern: &str) -> HashMap<String, Vec<usize>> {
     let regex_pat = pattern.replace("{", "[^").replace("}", "]");
     let mut positions: HashMap<String, Vec<usize>> = HashMap::new();
     let re = Regex::new(&regex_pat).unwrap();
     for (k, v) in seqs {
-        for pos in re.find_iter(v) {
-            let values: &mut Vec<usize> = match positions.entry(k.to_string()) {
-                Entry::Occupied(o) => o.into_mut(),
-                Entry::Vacant(v) => v.insert(Vec::new())};
-            values.push(pos.start()+1);
+        let values = find_rec(v, &re, 0);
+        if values.len() > 0 {
+            positions.insert(k.to_string(), values);
         }
     }
     positions
 }
+
+
+fn find_rec(seq: &String, re: &Regex, offset: usize) -> Vec<usize> {
+    let mut new_vec: Vec<usize> = Vec::new();
+    let mut start_pos = 0usize;
+    for (i, pos) in re.find_iter(seq).enumerate() {
+        new_vec.push(pos.start()+1+offset);
+        if i != 0 {
+            let partial_seq: String = seq[start_pos..pos.start()].to_string();
+            new_vec.extend(find_rec(&partial_seq, re, offset+start_pos));
+        }
+        start_pos = pos.start() + 1;
+    }
+    match new_vec.last().copied() {
+        Some(pos) => {
+            let partial_seq: String = seq[start_pos..].to_string();
+            new_vec.extend(find_rec(&partial_seq, re, pos));
+        },
+        None => (),
+    }
+    new_vec.sort();
+    new_vec
+}
+
 
 
 async fn get_components(content: &str) -> HashMap<String, String> {

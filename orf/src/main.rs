@@ -1,4 +1,3 @@
-extern crate regex;
 use std::env;
 use std::fs;
 use std::collections::HashMap;

@@ -17,23 +17,38 @@ fn main() {
 fn find_longest_substring(fast_a_content: &HashMap<String, String>) -> String {
     let base_key = find_shortest_seq(fast_a_content);
     let mut substring = "".to_string();
+    let mut cache: HashMap<String, bool> = HashMap::new();
     let shortest_seq: &String = fast_a_content.get(&base_key).unwrap();
-    for i in 0..shortest_seq.len()-1 {
+    // println!("{}", shortest_seq);
+    for i in 0..shortest_seq.len() {
         let mut substring_i = "".to_string();
         for c in shortest_seq[i..].chars() {
             substring_i.push(c);
-            let mut is_valid = true;
-            for (key, seq_i) in fast_a_content {
-                if key.to_string() != base_key {
-                    if !seq_i.contains(&substring_i) {
-                        if substring_i.len() > 0 {
-                            substring_i = substring_i[..substring_i.len()-1].to_string();
-                            is_valid = false;
+            // println!("{}", substring_i);
+            let is_valid: bool = match cache.get(&substring_i) {
+                Some(res) => {
+                    // println!("Found value");
+                    res.clone()},
+                None => {
+                    // println!("Check new");
+                    let mut is_valid = true;
+                    for (key, seq_i) in fast_a_content {
+                        if key.to_string() != base_key {
+                            if !seq_i.contains(&substring_i) {
+                                if substring_i.len() > 0 {
+                                    is_valid = false;
+                                    cache.insert(substring_i.to_string(), false);
+                                    substring_i = substring_i[..substring_i.len()-1].to_string();
+                                }
+                                break
+                            } else {
+                                cache.insert(substring_i.to_string(), true);
+                            }
                         }
-                        break
                     }
+                    is_valid
                 }
-            }
+            };
             if !is_valid {
                 break
             }

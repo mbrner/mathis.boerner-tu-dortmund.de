@@ -1,0 +1,19 @@
+The rule is: an unrooted tree with n leaves has n-2 internal nodes
+
+O\   
+  X-O      n=4 -> 2 internal nodes
+O/   
+
+O\   /O
+  X-X      n=4 -> 2 internal nodes
+O/   \O
+
+O\     /O
+  X-X-X    n=5 -> 3 internal nodes
+O/  |  \O
+    O
+
+O\       /O
+  X-X-X-X    n=6 -> 4 internal nodes
+O/  | |  \O
+    O O

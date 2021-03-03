@@ -1,0 +1,1 @@
+The problem can be viewed as an n bit long array and 0 indicates the number is not part of the set and 1 indicates the number is part of the set. So there are n^2 different possible sets.
